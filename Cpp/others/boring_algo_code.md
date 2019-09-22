@@ -1,6 +1,4 @@
-# Combination&Search
-
-## Set
+# Codes
 
 ### Permutation
 
@@ -147,5 +145,142 @@ vector<vector<int>> subsetsWithDup(vector<int>& nums) {
   }
   return ret;
 }
+```
+
+#### LRU
+
+```c++
+/*
+ * @lc app=leetcode.cn id=146 lang=cpp
+ *
+ * [146] LRU缓存机制
+ */
+
+// 自己定义规则find的话用find_if
+// 直接对应value去find才用find
+// LRU其实就是把用到的东西放到front
+// 优化的方法就是hash_table + linked_list ... 
+
+class LRUCache {
+public:
+    LRUCache(int capacity){
+        max_sz = capacity;
+    }
+
+    int get(int key)
+    {
+        auto aim = std::find_if(data.begin(), data.end(), [key](const auto& x){ return x.key == key; });
+        if(aim == data.end())
+            return -1;
+        auto next_front = *aim;
+        data.erase(aim);
+        data.push_front(next_front);
+        return data.front().val;
+    }
+
+    void put(int key, int value)
+    {
+        auto aim = std::find_if(data.begin(), data.end(), [key](const auto& x){ return x.key == key; });
+        if(aim == data.end())
+        {
+            if(data.size() == max_sz)
+                data.pop_back();
+            data.push_front({key, value});
+            return;
+        }
+        data.erase(aim);
+        data.push_front({key, value});
+    }
+private:
+    struct cache
+    {
+        int key = -1;
+        int val  = -1;
+    };
+    list<cache> data;
+    int max_sz;
+};
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache* obj = new LRUCache(capacity);
+ * int param_1 = obj->get(key);
+ * obj->put(key,value);
+ */
+```
+
+#### 二叉树遍历
+
+```c++
+// 先不考虑前序、中序和后序，大概是这样的调用loop。
+class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        vector<int> ret;
+        stack<TreeNode*> stk;
+        while(root != NULL || !stk.empty())
+        {
+            while(root != NULL)
+            {// 前序放这
+                stk.push(root);
+                root = root->left;
+            }
+            if(!stk.empty())
+            {
+                root = stk.top();
+                stk.pop();//中序放这
+                root = root->right;
+            }
+        }
+        return ret;
+    }
+};
+
+// 后续遍历的话，将递归的过程反过来看，做一个rev_postorder:
+/*
+ * @lc app=leetcode.cn id=145 lang=cpp
+ *
+ * [145] 二叉树的后序遍历
+ */
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+
+/*
+-> rev:
+		if NULL: end;
+		out();
+		rev(r);
+		rev(l);
+-> rev:
+
+*/
+class Solution {
+public:
+    vector<int> postorderTraversal(TreeNode* root) {
+        if(root == NULL)
+            return {};
+        vector<int> ret;
+        stack<TreeNode*> stk;
+        stk.push(root);
+        while(!stk.empty())
+        {
+            root = stk.top();
+            stk.pop();
+            ret.push_back(root->val);
+            if(root->left)
+                stk.push(root->left);
+            if(root->right)
+                stk.push(root->right);
+        }
+        reverse(ret.begin(), ret.end());
+        return ret;
+    }
+};
 ```
 
