@@ -1,6 +1,6 @@
 # Codes
 
-### Permutation
+[TOC]
 
 #### Naive permutation(unique version)
 
@@ -93,8 +93,6 @@ vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
     return ret;
 }
 ```
-
-### subset
 
 #### Subsets of non-duplicate elements
 
@@ -372,6 +370,72 @@ public:
       	while(ret * ret > x)
         		ret = (ret + x / ret) / 2;
       	return ret;
+    }
+};
+```
+
+#### 最长回文子串 —— 动态规划
+
+#### 堆排序
+
+- `make_heap`
+- `sort_heap`
+- `heapify`：以当前节点为堆
+
+```c++
+/*
+ * @lc app=leetcode.cn id=912 lang=cpp
+ *
+ * [912] 排序数组
+ */
+class Solution {
+public:
+    template<typename Vec>
+    Vec& sortArray(Vec&& nums) {
+        make_heap(nums.begin(), nums.end());
+        heap_sort(nums.begin(), nums.end());
+        return nums;
+    }
+private:
+    template<typename Iter>
+        void heapify(Iter beg, Iter end, const Iter parent)
+    {
+        // TODO.
+        Iter left = beg + distance(beg, parent) * 2 + 1;
+        Iter right = left + 1;
+        if(right < end)
+        {
+            Iter max_it = (*left > *right) ? left : right;
+            if(*max_it > *parent)
+            {
+                swap(*max_it, *parent);
+                heapify(beg, end, max_it);
+            }
+        }
+        else if(right == end && *left > *parent)
+            swap(*left, *parent);
+    }
+    template<typename Iter>
+        void make_heap(Iter beg, Iter end)
+    {
+        auto len = distance(beg, end);
+        if(len < 2)
+            return;
+        for(auto it = beg + len/2 - 1; it != beg; --it)
+            heapify(beg, end, it);
+        heapify(beg, end, beg);
+    }
+    template<typename Iter>
+        void heap_sort(Iter beg, Iter end)
+    {
+        auto len = distance(beg, end);
+        if(len < 2)
+            return;
+        while(beg < end)
+        {
+            swap(*beg, *--end);
+            heapify(beg, end, beg);
+        }
     }
 };
 ```
