@@ -205,9 +205,67 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 
 ![](https://i.loli.net/2019/09/21/OZchYsWv8CnGKf3.png)
 
+> 注意，寄存器被保存和恢复有2种方式：
+>
+> - 硬件隐式保存（目标地址是内核栈，由硬件实现）；
+> - 操作系统显式保存（目标地址是PCB的内存，linux3.6内核代码`switch_to`中的注释表示）；
+
+```c
+/*
+ * Context-switching clobbers all registers, so we clobber      \
+ * them explicitly, via unused output variables.                \
+ * (EAX and EBP is not listed because EBP is saved/restored     \
+ * explicitly for wchan access and EAX is the return value of   \
+ * __switch_to())           
+ */
+```
+
+
+
+> > 再次注意，每个进程有2种类型的stack，user-mode和kernel-mode，kernel-mode stack就是我们说内核栈。
+> >
+> > Each user thread has both a **user-mode** stack and a **kernel-mode** stack. When a thread enters the kernel, the current value of the <u>user-mode stack</u> (`SS:ESP`) and <u>instruction pointer</u> (`CS:EIP`) are saved to the thread's <u>kernel-mode stack,</u> and the CPU switches to the kernel-mode stack - with the `int $80` syscall mechanism, this is done by the CPU itself. <u>The remaining register values and flags are then also saved to the kernel stack.</u>
+> >
+> > When a thread context-switches, it calls into the scheduler (the scheduler does not run as a separate thread - <u>it always runs in the context of the current thread</u>). The scheduler code selects a process to run next, and calls the `switch_to()` function. This function essentially just switches the kernel stacks - it saves <u>the current value of the stack pointer into the TCB</u> for the current thread (called `struct task_struct` in Linux), and loads a previously-saved stack pointer from the TCB for the next thread. At this point it also saves and restores some other thread state that isn't usually used by the kernel - things like floating point/SSE registers. <u>If the threads being switched don't share the same virtual memory space (ie. they're in different processes), the page tables are also switched.</u>
+> >
+> > So you can see that the core user-mode state of a thread isn't saved and restored at context-switch time - it's saved and restored to the thread's kernel stack <u>when you enter and leave the kernel.</u> The context-switch code doesn't have to worry about clobbering the user-mode register values - those are already safely saved away in the kernel stack by that point.
+
 #### 上下文切换开销
 
 - 200-MHz Linux 1.3.37 ~ 系统调用 3μs 上下文切换6μs
+
+> 理论分析：
+>
+> - 寄存器的保存与恢复
+> - Cache刷新
+> - 流水线，分支预测结果刷新
+> - TLB（线程级别可不考虑）
+
+### 进程调度
+
+在进行上下文切换的时候，如何选择即将要切换到的进程，涉及的就是进程调度的问题了。
+
+> 调度问题2大aim：公平+性能；
+
+#### 指标
+
+- 希望尽早完成（性能）：周转时间=完成时间-到达时间
+- 希望尽早被响应（公平+性能）：响应时间=首次运行时间-到达时间（适用于对时间敏感的程序）
+
+#### 策略
+
+- FIFO
+- SJF（shortest job first）：最优，平均周转时间最短（同时到达进程由开始到被调度完的时间总合/被调度进程数量）（$T=Nt_1+(N-1)t_2+\cdots+t_N$）
+
+> 缺点：非抢占式，若有新的短时间进程来了，还是会让老进程先执行。
+
+- STCF（最短完成时间优先Shortest Time-to-Completion First）：抢占式。同样是最优的。
+- RR(Round-Robin 轮转)：解决的是响应时间的问题。（对周转时间不友好，但符合公平性）
+- Overlap I/O
+
+#### 问题
+
+上面很多策略是假设我们知道整个运转时间的长度，但实际上我们并无法知道…所以我们应该利用最近的策略去预测未来…（多级反馈队列）
 
 ## Concurrency
 

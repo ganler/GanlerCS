@@ -284,3 +284,95 @@ public:
 };
 ```
 
+#### 单词串翻转
+
+```c++
+/*
+ * @lc app=leetcode.cn id=151 lang=cpp
+ *
+ * [151] 翻转字符串里的单词
+ * 
+ * // 检测front和back的时候注意先判断是否empty
+ * // 整个先翻转，再将内部单次翻转
+ */
+class Solution {
+public:
+    template<typename Str>
+    	Str&& reverseWords(Str&& s) 
+    {
+        reverse(s.begin(), s.end());
+        auto beg_ = s.begin(), end_ = s.begin();
+        while(beg_ != s.end())
+        {
+            beg_ = find_if(end_, s.end(), [](auto&& x){ return x != ' ';});
+            end_ = find_if(beg_, s.end(), [](auto&& x){ return x == ' ';});
+            reverse(beg_, end_);
+        }
+        int l = 0;
+        for(int i=0; i<s.length(); ++i)
+            if(s[i] != ' ')
+                s[l++] = s[i];
+            else if(l != 0 && s[l-1] != ' ') // ' '
+                s[l++] = ' ';
+        s.erase(s.begin()+l, s.end());
+        if(!s.empty() && s.back() == ' ')
+            s.pop_back();
+        return s;
+    }
+};
+```
+
+#### 手动平方根
+
+> 边界条件很恶心：
+>
+> - 二分防越界：`mid = l+(r-l)/2`
+> - 自平方防越界：`mid <= x/mid`
+> - 防除0：`(l+r)/2 != 0 => r > 1`
+
+```c++
+class Solution {
+public:
+    int mySqrt(int x) {
+        if(x <= 1)
+            return x;
+        int l = 0, r = x;
+        while(l < r)
+        {
+            int mid = l+(r-l)/2;
+            if(mid <= x / mid) // avoid overflow
+                l = mid+1;
+            else
+                r = mid;
+        }
+        return r-1;
+    }
+};
+```
+
+#### 牛顿法平方根
+
+$$
+y=f(x)=x^2\\
+f(x_0)=x_0^2=y_0\\
+知y_0,求x_0\\
+g(x)=x^2-y_0\\
+即求其为0的时候的解\\
+g'(x)=2x\\
+其(u,u^2-y_0)点的切线为\\
+y =2u(x-u)+u^2-y_0=2ux-u^2-y_0\\
+x_0'=\frac{1}{2}(u^2+y_0)/u=\frac{1}{2}(u+\frac{y_0}{u})
+$$
+
+```c++
+class Solution {
+public:
+    int mySqrt(int x) {
+        uint64_t ret = x;
+      	while(ret * ret > x)
+        		ret = (ret + x / ret) / 2;
+      	return ret;
+    }
+};
+```
+
