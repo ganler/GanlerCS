@@ -12,8 +12,20 @@ namespace ganler
 template <typename T>
 class obj_pool
 {
+private:
+    struct deleter_
+    {
+        inline void operator()(T* r)
+        {
+            {
+                std::lock_guard l(mu_);
+                pool_.emplace_back(r);
+            }
+            size_.fetch_add(1, std::memory_order_acq_rel);
+        }
+    };
 public:
-    using uptr_t = std::unique_ptr<T, std::function<void(T*)>>;
+    using uptr_t = std::unique_ptr<T, deleter_>;
     static inline bool empty()
     {
         return size_.load(std::memory_order_acquire) == 0;
@@ -33,14 +45,14 @@ public:
     template <typename ... Args>
     static inline uptr_t build(Args&& ... args)
     {
-        return uptr_t(new T(std::forward<Args>(args)...), deleter_);
+        return uptr_t(new T(std::forward<Args>(args)...), deleter_());
     }
     static inline uptr_t get()
     { // please check `empty` by urself :) or go and fuck lrz.
         uptr_t ret;
         {
             std::lock_guard l(mu_);
-            ret = uptr_t(pool_.back().release(), deleter_);
+            ret = uptr_t(pool_.back().release(), deleter_());
             pool_.pop_back();
         }
         size_.fetch_sub(1, std::memory_order_acq_rel);
@@ -50,13 +62,6 @@ private:
     static inline std::deque<std::unique_ptr<T>> pool_;
     static inline std::mutex                     mu_;
     static inline std::atomic<std::size_t>       size_;
-    static inline std::function<void(T*)>        deleter_ = [](T* r){
-        {
-            std::lock_guard l(mu_);
-            pool_.emplace_back(r);
-        }
-        size_.fetch_add(1, std::memory_order_acq_rel);
-    };
 };
 }
 

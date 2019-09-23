@@ -410,7 +410,9 @@ private:
 
 ### Condition Variable
 
-#### wait和notify一定要加锁
+#### wait一定要加锁
+
+notify如果只考虑自身的线程安全的话，反正C++标准是保证的，可以直接把notify放临界区外。Linux的pthread据李润中说也是保证线程安全的。
 
 #### Linux的管道是producer/consumer模型
 
@@ -422,3 +424,27 @@ grep foo f.txt | wc -l
 #### 覆盖条件
 
 以并发动态内存分配为例，当内存不够的时候就`wait_until(有内存)`，而当真正有内存的时候，我们使用条件变量不知道应该`notify which thread`。简单的做法就是`notify_all`（但性能不会很好）；
+
+## 其他
+
+#### 9.24 凌晨和李润中讨论条件变量的结果
+
+- 先notify再wait，wait能不能接受到这个notify —— 不能
+
+> 因为在pthread_cond_t和C++中condition_variable的实现中，首先wait需要拿到一把锁，然后看看条件是否达成，达不成就unlock，并进入休眠队列。notify的话就是唤醒某一线程抢一下锁然后查看一下结果，如果OK，就继续，不行就unlock。
+>
+> **结论**：
+>
+> - notify after unlock
+> - wait操作将临界区分成2段
+
+- notify操作的线程安全性：
+
+> 在C++中：
+>
+> `notify_one()`/`notify_all()` 的效果与 `wait()`/`wait_for()`/`wait_until()` 的三个原子部分的每一者（解锁+等待、唤醒和锁定）以能看做原子变量[修改顺序](https://zh.cppreference.com/w/cpp/atomic/memory_order#.E4.BF.AE.E6.94.B9.E9.A1.BA.E5.BA.8F)单独全序发生：顺序对此单独的 condition_variable 是特定的。譬如，这使得 `notify_one()` 不可能被延迟并解锁正好在进行 `notify_one()` 调用后开始等待的线程。
+>
+> 通知线程不必保有等待线程所保有的同一互斥上的锁；实际上这么做是劣化，因为被通知线程将立即再次阻塞，等待通知线程释放锁。然而一些实现（尤其是许多 pthread 的实现）辨识此情形，在通知调用中，直接从条件变量队列转移等待线程到互斥队列，而不唤醒它，以避免此“急促并等待”场景。
+>
+> 然而，在要求精确调度事件时，可能必须在处于锁下时通知，例如，在若满足条件则线程将退出程序，导致析构通知线程的 condition_variable 的情况下。互斥解锁之后，但在通知前的虚假唤醒可能导致通知在被销毁对象上调用。
+
