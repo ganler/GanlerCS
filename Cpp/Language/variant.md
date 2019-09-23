@@ -140,7 +140,7 @@ class t1
 public:
     void print()
     {
-        std::cout << "t1\n";
+        std::cout << "t1\n"; 
     }
 };
 

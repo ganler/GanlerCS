@@ -440,3 +440,49 @@ private:
 };
 ```
 
+#### 找heap
+
+> 注意两边是`-inf`，那么其实通过看趋势（diff），就可以推断哪边一定有峰值了；
+
+```c++
+/*
+ * @lc app=leetcode.cn id=162 lang=cpp
+ *
+ * [162] 寻找峰值
+ */
+class Solution {
+public:
+    int findPeakElement(vector<int>& nums) {
+        int l = 0, r = nums.size()-1; // 注意-1
+        while(l < r)
+            if(int mid = l + (r-l)/2; nums[mid] < nums[mid+1])
+                l = mid + 1;
+            else
+                r = mid;
+        return l;
+    }
+};
+```
+
+#### 寻找旋转数组的最小值
+
+```c++
+/*
+ * @lc app=leetcode.cn id=153 lang=cpp
+ *
+ * [153] 寻找旋转排序数组中的最小值
+ */
+class Solution {
+public:
+    int findMin(const vector<int>& nums) {
+        int l = 0, r = nums.size()-1;
+        while(l < r && nums[l] >= nums[r]) // 确定终止条件然后开心二分就好
+            if( int mid = l + (r - l)/2; nums[mid] >= nums[l])
+                l = mid+1;
+            else
+                r = mid;
+        return nums[l];
+    }
+};
+```
+
