@@ -220,8 +220,6 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
  */
 ```
 
-
-
 > > 再次注意，每个进程有2种类型的stack，user-mode和kernel-mode，kernel-mode stack就是我们说内核栈。
 > >
 > > Each user thread has both a **user-mode** stack and a **kernel-mode** stack. When a thread enters the kernel, the current value of the <u>user-mode stack</u> (`SS:ESP`) and <u>instruction pointer</u> (`CS:EIP`) are saved to the thread's <u>kernel-mode stack,</u> and the CPU switches to the kernel-mode stack - with the `int $80` syscall mechanism, this is done by the CPU itself. <u>The remaining register values and flags are then also saved to the kernel stack.</u>
@@ -266,6 +264,71 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 #### 问题
 
 上面很多策略是假设我们知道整个运转时间的长度，但实际上我们并无法知道…所以我们应该利用最近的策略去预测未来…（多级反馈队列）
+
+### MLFQ 多级反馈队列
+
+#### 设计初衷
+
+- naive使用分时策略会导致**周转时间**不佳
+- 使用其他的策略**响应时间**
+
+> 嗯，就是拿来权衡周转时间和响应时间的。
+
+#### 规则
+
+1. 🌟 按优先级执行
+2. 🌟 同优先级则轮转
+3. 🌟 新任务从最高优先级开始
+4. 🌟 使用完一个时间片则降低一次优先级
+5. 🌟 因为其他原因（比如IO）而释放CPU则不改变优先级（对于交互型的进程，由于我们希望它被即使响应，所以我们希望它优先级高）
+
+> 只要调度不是特别频繁，那么相对来说调度的开销就可以忽略不计。
+
+#### 问题
+
+- 恶意程序可以通过频繁IO来抢占优先级（愚弄问题）
+- 如果“非交互”型进程突然变成“交互型”进程，那么响应的问题还是没有被解决
+
+#### 改进：提升优先级
+
+- 思路一：周期性提升所有工作的优先级（针对问题2）
+- 🌟 经过一段时间（John Ousterhout称之为“巫毒常量(voo-doo constant)”），系统将所有工作重新加入最高优先队列。
+- 思路二：更好的计时方式（解决愚弄问题）
+- 之前的计时：【调度时重新计时】时间片（<u>全局</u>）对应的时间一到就over，然后重新开始计时；
+- 新的计时：【每个任务对应一个时间】**<u>每一层</u>**都会记录其真正的**<u>运行时间</u>**
+- 🌟 一旦一个工作完成了其在**<u>某一层</u>**中的**时间配额**，那么就降低优先级。（针对问题一）
+
+> 之前的时间片是包括IO等其他操作的，而新的时间配额是某一级指用于“running”的时间。
+
+#### 配置
+
+- 提升优先级的时间周期的设置
+- 优先队列的层数
+- （每一层）时间片大小
+
+> 一般来说MLFQ越高优先级，时间片越短（响应快），越低则时间片越长。
+
+#### Ousterhout定律
+
+尽量避免巫毒常量（voo-doo constant）。
+
+#### 实现
+
+- Solaris: 表（配置），默认60层…，20ms~几百ms，每一秒刷新一次优先级。
+- 其他：数学公式调整优先级。——FreeBSD，基于当前进程使用了多少CPU，然后有个计算优先级的公式。
+
+#### 系统设计的big idea
+
+- 使用hint，通过对hint的处理，来选择更优的策略；
+
+#### 总结
+
+- 初始都在最高优先级
+- 同优先级使用时间片轮转
+- 时间配额——记录**<u>某一级</u>**优先队列的**<u>真正的CPU run time</u>**
+- 通过一段时间就刷新工作队列
+
+> 没错他是反馈（自适应）的！！！
 
 ## Concurrency
 
