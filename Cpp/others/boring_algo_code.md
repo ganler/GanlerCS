@@ -486,3 +486,26 @@ public:
 };
 ```
 
+#### 二进制1的个数
+
+查看Mac的CPU指令支持：
+
+```shell
+sysctl -a | grep machdep.cpu.features
+```
+
+```c++
+// 编译的时候 -mpopcnt
+bitset<sizeof(n)*8>{n}.count();
+__asm__("POPCNT %0, %1\n" : "=r"(n) : "r"(n)); // "=x" means result
+```
+
+```c++
+int cnt = 0;
+while(n != 0){
+  ++cnt;
+  n &= (n-1);
+}
+return cnt;
+```
+
