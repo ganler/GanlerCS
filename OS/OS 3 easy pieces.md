@@ -224,11 +224,30 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 
 ![](https://i.loli.net/2019/09/21/MFwcDOXHepyGgfi.png)
 
-> One kernel-stack per CPU;
+> https://www.kernel.org/doc/html/latest/x86/kernel-stacks.html
 >
-> One user-stack per process;
+> https://stackoverflow.com/questions/12911841/kernel-stack-and-user-space-stack
 >
-> One stack per thread;
+> > In a Linux system, every user process has 2 stacks, a user stack and a dedicated kernel stack for the process. The user stack resides in the user address space (first 3GB in 32-bit x86 arch.) and the kernel stack resides in the kernel address space (3GB-4GB in 32bit-x86) of the process.
+> >
+> > When a user process needs to execute some privileged instruction (a system call) it traps to kernel mode and the kernel executes it on behalf of the user process. **This execution takes place on the process' kernel stack.**
+> >
+> > The [**TSS (Task State Segment)**](https://en.wikipedia.org/wiki/Task_state_segment) is used to store the segment selector and stack pointer of the process' kernel stack.
+> >
+> > Upon a system call, the user process pushes all caller save registers in the process' user stack and executes [**int $0x80**](https://en.wikipedia.org/wiki/INT_(x86_instruction)) (0x80 is for system call**)** instruction. Then the **hardware** (not software) finds the process' kernel stack address from the TSS, loads those values to %**ss** (stack segment selector ) and pushes the old stack stack-pointer (**%esp**), old program-counter (**%eip**), old stack segment (**%ss**), code segment(**%cs**), and EFLAGS registers in the **process' kernel stack.** Hence, any operation requiring stack access uses this stack (not the user stack). After execution is over, the hardware pops the saved values from the kernel stack to their respective registers and resumes in the user stack.
+> >
+> > For a trap execution, the user stack can't be used because it might be corrupted by malicious user process. The kernel stack is used by kernel code only, so it is safe.
+> >
+> > For more info follow this link.
+
+#### User stack & kernel stack
+
+地址不一样，权限不一样。
+
+- User stack在用户态
+- Kernel stack在内核态
+- 每个线程都有一个kernel stack
+- syscall的时候，通过硬件，寄存器data将进行暂时的存储和恢复
 
 #### 等待系统调用的协作方式
 
@@ -253,8 +272,6 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 >
 > - 硬件隐式保存（目标地址是内核栈，由硬件实现）；
 > - 操作系统显式保存（目标地址是PCB的内存，linux3.6内核代码`switch_to`中的注释表示）；
->
-> 当进程数量多于CPU数量的时候，kernel-stack存不过来那么多process的register（kernel-stack的存取是硬件实现的），所以必须显示通过OS保存一份副本到context。
 >
 > > And，context是用于用户进程上下文切换，k-stack是用与内核态与用户态的切换。
 
@@ -480,7 +497,9 @@ $$
 - 高性能（时间和空间）
 - 保护隔离
 
+#### GLIBC 
 
+为字符串分配内存的时候应该多分配一个`byte`。
 
 ## Concurrency
 
