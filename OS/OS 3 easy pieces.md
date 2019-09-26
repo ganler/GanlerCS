@@ -98,9 +98,43 @@ int main()
 
 > fork后，可调用exec去执行别的程序。这样不会产生新的子进程。
 >
-> 调用exec后，当前子进程的程序，静态数据，堆，栈等都会被覆盖（重新初始化），然后执行exec对应的程序。
+> 调用exec后，当前子进程的程序，静态数据，堆，栈等都会被覆盖（重新初始化），然后执行exec对应的程序。（使用exec之后，exec之后的程序都没了，因为当前进程被刷新了，其也会有返回值，但是成功调用的话不会返回）
 >
 > <u>对exec的成功调用永远都不会返回。</u>
+
+```c++
+#include <unistd.h>
+#include <cstdio>
+#include <sys/wait.h>
+
+int main()
+{
+    auto fuck = fork();
+    char* f[] =  {"echo", "balabala", nullptr};
+    if(fuck == 0)
+        execvp(f[0], f);
+    else
+        wait(NULL);
+    printf("hello\n"); // 并不会输出2次
+}
+```
+
+```c++
+#include <unistd.h>
+#include <cstdio>
+#include <sys/wait.h>
+
+int main()
+{
+    auto fuck = fork();
+    char* f[] =  {"echo1", "balabala", nullptr}; // 错误
+    if(fuck == 0)
+        execvp(f[0], f);
+    else
+        wait(NULL);
+    printf("hello\n"); // 输出2次
+}
+```
 
 ```c++
 #include <cstdio>
@@ -190,6 +224,12 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 
 ![](https://i.loli.net/2019/09/21/MFwcDOXHepyGgfi.png)
 
+> One kernel-stack per CPU;
+>
+> One user-stack per process;
+>
+> One stack per thread;
+
 #### 等待系统调用的协作方式
 
 > 即OS相信程序会定期give up。
@@ -213,6 +253,10 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 >
 > - 硬件隐式保存（目标地址是内核栈，由硬件实现）；
 > - 操作系统显式保存（目标地址是PCB的内存，linux3.6内核代码`switch_to`中的注释表示）；
+>
+> 当进程数量多于CPU数量的时候，kernel-stack存不过来那么多process的register（kernel-stack的存取是硬件实现的），所以必须显示通过OS保存一份副本到context。
+>
+> > And，context是用于用户进程上下文切换，k-stack是用与内核态与用户态的切换。
 
 ```c
 /*
