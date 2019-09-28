@@ -78,23 +78,23 @@ namespace ganler
     };
 }
 
-int main()
-{
-    using namespace ganler;
-    trie<char> my_trie;
-    auto v1 = std::initializer_list<char>{1, 2, 3};
-    auto v2 = std::initializer_list<char>{1, 2, 2};
-    auto v3 = std::initializer_list<char>{1, 2, 2, 2};
-    auto v4 = std::initializer_list<char>{1, 2, 2, 3, 2};
-    auto v5 = std::initializer_list<char>{9, 2, 2, 3};
+// int main()
+// {
+//     using namespace ganler;
+//     trie<char> my_trie;
+//     auto v1 = std::initializer_list<char>{1, 2, 3};
+//     auto v2 = std::initializer_list<char>{1, 2, 2};
+//     auto v3 = std::initializer_list<char>{1, 2, 2, 2};
+//     auto v4 = std::initializer_list<char>{1, 2, 2, 3, 2};
+//     auto v5 = std::initializer_list<char>{9, 2, 2, 3};
 
-    my_trie.insert(v1);
-    my_trie.insert(v2);
-    my_trie.insert(v3);
+//     my_trie.insert(v1);
+//     my_trie.insert(v2);
+//     my_trie.insert(v3);
 
-    gassert(my_trie.search(v1));
-    gassert(my_trie.search(v2));
-    gassert(my_trie.search(v3));
-    gassert(!my_trie.search(v4));
-    gassert(!my_trie.search(v5));
-}
+//     gassert(my_trie.search(v1));
+//     gassert(my_trie.search(v2));
+//     gassert(my_trie.search(v3));
+//     gassert(!my_trie.search(v4));
+//     gassert(!my_trie.search(v5));
+// }
