@@ -509,3 +509,11 @@ while(n != 0){
 return cnt;
 ```
 
+#### unsigned 陷阱
+
+```c++
+for(int i = len/2-1; i >= 0; --i) // Must be int !!!
+        heapify(beg, end, beg+i);
+// 如果不是int那么就凉凉了，因为unsigned永远>=0
+```
+
