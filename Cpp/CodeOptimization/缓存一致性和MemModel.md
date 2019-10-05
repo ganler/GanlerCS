@@ -2,7 +2,7 @@
 
 > [SRC](https://gist.github.com/hellerbarde/2843375)
 
-![pic](https://cloud.githubusercontent.com/assets/1489514/19324275/be41885c-908e-11e6-95a2-68fa75333c38.jpg)
+![](https://cloud.githubusercontent.com/assets/1489514/19324275/be41885c-908e-11e6-95a2-68fa75333c38.jpg)
 
 > Cache size:
 >
@@ -104,6 +104,246 @@ bool atomic::cas(int& expected, int new_val)
 
 > weak版本的CAS允许错误的返回（比如在字段值和期待值一样的时候却返回了false），不过在一些循环算法中，这是可以接受的。通常它比起strong有更高的性能。
 
+## 编译器优化
+
+> 编译器被允许在不改变单线程程序执行结果的前提下，进行各种优化。
+
+- 公共子表达式删除
+
+```c++
+a = b*c + h;
+d = b*c * 3;
+// tmp <= b*c
+// a += tmp
+// d *= tmp
+```
+
+- 死代码删除
+- 寄存器分配（多次读优化）
+- 指令调度（流水线重排——为的就是提高指令发射数量）
+
 ## Memory Model
 
-> 待续。
+> 用于规范多线程访问共享存储器时的行为。（决定了多线程程序的正确性）
+
+- 单处理器（且没有DMA）的单线程程序无需考虑Memory Model
+- 汇编语言的memory model由处理器规定和实现，不可移植；高级语言的memory model由编译器和目标处理器共同实现，可移植；
+
+-  the default mode for atomic loads/stores in C++11 is to enforce *sequential* consistency.
+
+### CPPREFERENCE
+
+- byte为最小可寻址内存单位
+- 内存位置为标量对象或非零长位域的最大相接序列（不满8bit则延续）
+- 线程与数据竞争：
+  - 对一个正在写的内存位置进行操作，会触发数据竞争，除法
+    - 同线程或同一信号处理函数
+    - 2个都是原子操作
+    - 使用memory order的`happens-before`
+
+#### 内存顺序 memory_order
+
+| 值                     | 解释                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| `memory_order_relaxed` | 宽松操作：没有同步或顺序制约，**<u>仅对此操作要求原子性</u>**（见下方[宽松顺序](https://zh.cppreference.com/w/cpp/atomic/memory_order#.E5.AE.BD.E6.9D.BE.E9.A1.BA.E5.BA.8F)）。 |
+| `memory_order_consume` | 有此内存顺序的加载操作，在其影响的内存位置进行*消费操作*：当前线程中依赖于当前加载的该值的读或写不能被重排到此加载前。其他释放同一原子变量的线程的对数据依赖变量的写入，为当前线程所可见。在大多数平台上，这只影响到编译器优化（见下方[释放消费顺序](https://zh.cppreference.com/w/cpp/atomic/memory_order#.E9.87.8A.E6.94.BE.E6.B6.88.E8.B4.B9.E9.A1.BA.E5.BA.8F)）。 |
+| `memory_order_acquire` | 有此内存顺序的加载操作，在其影响的内存位置进行*获得操作*：当前线程中读或写不能被重排到此加载前。其他释放同一原子变量的线程的所有写入，能为当前线程所见（见下方[释放获得顺序](https://zh.cppreference.com/w/cpp/atomic/memory_order#.E9.87.8A.E6.94.BE.E8.8E.B7.E5.BE.97.E9.A1.BA.E5.BA.8F)）。 |
+| `memory_order_release` | 有此内存顺序的存储操作进行*释放操作*：当前线程中的读或写不能被重排到此存储后。当前线程的所有写入，可见于获得该同一原子变量的其他线程[释放获得顺序](https://zh.cppreference.com/w/cpp/atomic/memory_order#.E9.87.8A.E6.94.BE.E8.8E.B7.E5.BE.97.E9.A1.BA.E5.BA.8F)），并且对该原子变量的带依赖写入变得对于其他消费同一原子对象的线程可见（见下方[释放消费顺序](https://zh.cppreference.com/w/cpp/atomic/memory_order#.E9.87.8A.E6.94.BE.E6.B6.88.E8.B4.B9.E9.A1.BA.E5.BA.8F)）。 |
+| `memory_order_acq_rel` | 带此内存顺序的读修改写操作既是*获得操作*又是*释放操作*。当前线程的读或写内存不能被重排到此存储前或后。所有释放同一原子变量的线程的写入可见于修改之前，而且修改可见于其他获得同一原子变量的线程。 |
+| `memory_order_seq_cst` | 有此内存顺序的加载操作进行*获得操作*，存储操作进行*释放操作*，而读修改写操作进行*获得操作*和*释放操作*，再加上存在一个单独全序，其中所有线程以同一顺序观测到所有修改（见下方[序列一致顺序](https://zh.cppreference.com/w/cpp/atomic/memory_order#.E5.BA.8F.E5.88.97.E4.B8.80.E8.87.B4.E9.A1.BA.E5.BA.8F)）。 |
+
+#### 例子
+
+- Happens-before: `release - acquire`
+
+## Atomic
+
+### Lock-free atomic
+
+- Run-time: `is_lock_free` （因为是平台相关的——alignment）
+- C++17 =>(compile time) `is_always_lock_free`
+- alignment must be power of 2
+
+#### Alignments matters
+
+```c++
+struct M1{ // lock free when it's 16 byte alignment.
+  				 // 16 bytes => %mmx
+  	long x, y;
+}
+
+struct M2{ // lock free;
+  	long x;
+  	int y; // aligned to 16 bytes
+}
+
+struct M2{ // NOT lock free; => aligned to 12 bytes != 16
+  	int x, y, z;
+}
+```
+
+### False sharing
+
+> It happends when 2 (atomic) **<u>*writting*</u>** goes on the same cache line.
+>
+> (So reading to shared variable is faster than writing.)
+
+```c++
+// Double-checked locking pattern.
+// Optimized in hardware.
+bool cas_strong(T& old_, T new_)
+{
+  	T tmp = val; // atomic value
+  // >>> First check.(Not locked)
+  	if(tmp != old_)
+    {
+      	old_ = tmp;
+      	return false;
+    } // tmp == old_
+  
+  	LOCK;
+  	tmp = val;
+  	if(tmp != old_)
+    {
+      	old_ = tmp;
+      	return false;
+    } // tmp == old_
+		val = new_;
+  	return true;
+}
+
+bool cas_weak(T& old_, T new_)
+{// in x86 it doesn't.
+  	T tmp = val;
+  	if(tmp != old_)
+    {
+      	old_ = tmp;
+      	return false;
+    }
+  	TIMED_LOCK;
+  	if(TIME_OUT)
+      	return false; // Cannot get the lock in time;
+  	if(tmp != old_)
+    {
+      	old_ = tmp;
+      	return false;
+    }
+  	val = new_;
+  	return true;
+}
+```
+
+### 2 std::CAS 
+
+- `compare_exchange_strong` ---- true when success
+- `compare_exchange_weak` ---- maybe false when success
+
+## Lock-Free QUEUE
+
+```c++
+struct node{
+  	int   val;
+  	node* next;
+};
+
+std::atomic<node*> head;
+
+template<typename T>
+void push_front(T&& x)
+{
+  	node* new_ = new node;
+  	new_->val = std::forward<T>(x);
+  	node* old_ = head;
+		do{  new_->next = old_;   }
+  	while(!head.compare_exchange_strong(old_, new_));
+}
+```
+
+### Memory Barrier
+
+> It controls how changes to memory made by one CPU become visible to other CPUs.
+
+In C++11 `memory barrier => memory_order`
+
+#### Relaxed Memory Barrier
+
+Reorder whatever the compiler & processor they want.
+
+#### Acquire Memory Barrier
+
+- Half barrier.
+
+> All operations behind the barrier become visible(in order).
+>
+> 即，acquire之后的操作，一定是放在acquire之后，不能重排到前面。
+>
+> - 后面的不可以到前面
+> - 前面的可以到后面
+
+#### Release Memory Barrier
+
+> - 前面的不可以到后面
+> - 后面的可以到前面
+
+#### Acquire + Release Memory Barrier
+
+- Thread 1 writes sth to **x** => release
+- Thread 2 reads sth from **x** => acquire
+
+Things before `x.release_store` will be seen after `x.acquire_load`.
+
+#### Acq_rel Memory Barrier
+
+2 together. No operator can move across the barrier.
+
+> 之前的在之前发生，之后的在之后 发生。
+
+#### Seq_cst Memory Barrier
+
+2个Seq_cst之间的操作是固定的；
+
+#### Back2CAS
+
+```c++
+bool cas_strong( // Double check implementation.
+  T& old_,
+  T  new_,
+  memory_order on_success, 
+  memory_order on_failure) // they're seq_cst by default.
+{
+  	T tmp = v.load(on_failure);
+  	if(tmp != old_)
+    {
+      	old_ = tmp;
+      	return false;
+		}
+  	LOCK;
+  	tmp = v;
+  	if(tmp != old_)
+    {
+      	old_ = tmp;
+      	return false;
+		}
+  	v.store(new_, on_success);
+  	return true;
+}
+```
+
+#### Why change memory_order
+
+- <u>*Performance*</u>（It depends on platform => memory barriers are very expensive on ARM.But for other architecuture it's more expensive）
+  -  <u>**On X86**</u>. 
+    - <u>**All loads are aquire loads so *acquire* loads are free.**</u>
+    - **<u>All stores are release stores so *release* stores are free.</u>** 
+    - **<u>All read-modify-write are *acq-rel*</u>**
+    - **<u>No difference between *acq-rel* & *seq-cst* on X86</u>**
+- Expressing intent（表达意图）
+- As programmers we address to audiences
+
+> - Relaxed **write** can be as fast as non-atomic **write**.(10~100 faster than seq_cst)
+> - `seq_cst` is used when there's multiple atomic vars. Or the programmer don't know how to deal with memory order.
+
+## Others
+
+- X86 atomic operations are slower 特别是write
+- Atomic比mutex快10倍（spinlock可调优，常识是当线程多余核数时spinlock会很低效）
