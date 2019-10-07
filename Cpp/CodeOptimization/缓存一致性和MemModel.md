@@ -269,6 +269,8 @@ In C++11 `memory barrier => memory_order`
 
 Reorder whatever the compiler & processor they want.
 
+1. Relaxed ordering: 在单个线程内，**<u>所有原子操作是顺序进行的</u>**。按照什么顺序？基本上就是代码顺序（sequenced-before）。这就是唯一的限制了！两个来自不同线程的原子操作是什么顺序？两个字：任意。
+
 #### Acquire Memory Barrier
 
 - Half barrier.
@@ -285,6 +287,8 @@ Reorder whatever the compiler & processor they want.
 > - 前面的不可以到后面
 > - 后面的可以到前面
 
+> Release -- acquire: 来自不同线程的两个原子操作顺序不一定？那怎么能限制一下它们的顺序？这就需要两个线程进行一下同步（synchronize-with）。同步什么呢？同步对一个变量的读写操作。线程 A 原子性地把值写入 x (release), 然后线程 B 原子性地读取 x 的值（acquire）. **<u>这样线程 B 保证读取到 x 的最新值。</u>**注意 release -- acquire 有个牛逼的副作用：线程 A 中所有发生在 release x 之前的写操作，对在线程 B acquire x 之后的任何读操作都可见！本来 A, B 间读写操作顺序不定。这么一同步，在 x 这个点前后， A, B 线程之间有了个顺序关系，称作 inter-thread happens-before.
+
 #### Acquire + Release Memory Barrier
 
 - Thread 1 writes sth to **x** => release
@@ -300,7 +304,23 @@ Things before `x.release_store` will be seen after `x.acquire_load`.
 
 #### Seq_cst Memory Barrier
 
+>  Sequential consistency: 理解了前面的几个，顺序一致性就最好理解了。<u>*Release -- acquire 就同步一个 x*</u>，顺序一致就是对**<u>*所有的变量的所有原子操作都同步*</u>**。
+
 2个Seq_cst之间的操作是固定的；
+
+#### x86
+
+因为 只**<u>store-load</u>** 可以被重排，所以x86不是顺序一致。但是因为其他三种读写顺序不能被重排，所以x86是 acquire/release 语义。
+
+> store对应的是release语义（前不可后
+>
+> load对应的是acquire语义（后不可前
+>
+> 所以store-load在x86上是可以重排的
+
+> aquire语义：load 之后的读写操作无法被重排至 load 之前。即 load-load, load-store 不能被重排。
+>
+> release语义：store 之前的读写操作无法被重排至 store 之后。即 load-store, store-store 不能被重排。
 
 #### Back2CAS
 
@@ -329,7 +349,7 @@ bool cas_strong( // Double check implementation.
 }
 ```
 
-#### Why change memory_order
+#### Why should we change memory_order
 
 - <u>*Performance*</u>（It depends on platform => memory barriers are very expensive on ARM.But for other architecuture it's more expensive）
   -  <u>**On X86**</u>. 
@@ -347,3 +367,37 @@ bool cas_strong( // Double check implementation.
 
 - X86 atomic operations are slower 特别是write
 - Atomic比mutex快10倍（spinlock可调优，常识是当线程多余核数时spinlock会很低效）
+
+## View of Concurrency in action
+
+- 写Store: relaxed, release, seq_cst 
+- 读Load: relaxed, acquire, consume, seq_cst
+- Read-modify-write: 各种
+
+### 以`std::atomic_flag`为例
+
+#### `clear()`
+
+清除操作，是一个store，所以不能有`acq*`；
+
+#### `test_and_set()`
+
+是一个read-modify-write操作，可以用于所有内存顺序标签。
+
+```c++
+class spinlock // Can be used by std::lock_guard
+{
+private:
+  	std::atomic_flag m_flag = ATOMIC_FLAG_INIT;
+public:
+  	void lock() noexcept
+    {   // Everything happens later must be visible.
+      	while(m_flag.test_and_set(std::memory_order_acquire));
+    }
+  	void unlock() noexcept
+    {
+      	m_flag.clear(std::memory_order_release);
+    }
+};
+```
+

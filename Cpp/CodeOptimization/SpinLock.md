@@ -12,7 +12,6 @@
 #include <atomic>
 #include <thread>
 #include <iostream>
-// But this may not be good performance.
 
 class naive_spinlock
 {
@@ -20,13 +19,13 @@ private:
     std::atomic_flag m_af;
 public:
     naive_spinlock():m_af(ATOMIC_FLAG_INIT){}
-    void lock() noexcept 
+    void lock() noexcept
     {
-        while (m_af.test_and_set(std::memory_order_relaxed));
+        while (m_af.test_and_set(std::memory_order_acquire)); // 之后的不能到之前
     }
-    void unlock() noexcept 
+    void unlock() noexcept
     {
-        m_af.clear(std::memory_order_relaxed);
+        m_af.clear(std::memory_order_release); // 之前的不能到之后
     }
 };
 
