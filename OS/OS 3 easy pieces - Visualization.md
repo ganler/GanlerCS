@@ -294,6 +294,7 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 #### 上下文切换开销
 
 - 200-MHz Linux 1.3.37 ~ 系统调用 3μs 上下文切换6μs
+- 内核不能被抢占式调度（抢占式的调度都是一个要返回用户态的进程在抢）
 
 > 理论分析：
 >
@@ -301,6 +302,13 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 > - Cache刷新
 > - 流水线，分支预测结果刷新
 > - TLB（线程级别可不考虑）
+
+#### x86硬件支持
+
+- IDT
+- 将寄存器保存到内核栈
+  - user-mode->kernel-mode: `EIP,CS; ESP,SS; EFLAGS`
+  - Kernel-mode->user-mode: `EIP, CS; EFLAGS`
 
 ## 进程调度
 
