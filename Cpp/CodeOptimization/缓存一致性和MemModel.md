@@ -1,3 +1,5 @@
+[TOC]
+
 ## Latency data
 
 > [SRC](https://gist.github.com/hellerbarde/2843375)
