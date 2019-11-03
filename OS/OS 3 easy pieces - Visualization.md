@@ -234,7 +234,7 @@ open(output_file, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 > >
 > > For a trap execution, the user stack can't be used because it might be corrupted by malicious user process. The kernel stack is used by kernel code only, so it is safe.
 > >
-> > For more info follow this link.
+> > X86有个叫做TaskStateSegment的硬件，保存了当前进程的Kstack的位置。在进入内核态的时候，硬件通过TSS找到内核栈（%ss），然后将ss & esp & eip & cs & eflags push到内核栈。
 
 #### User stack & kernel stack
 
