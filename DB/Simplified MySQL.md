@@ -2,13 +2,13 @@
 
 [TOC]
 
-
-
 ## 基础类型操作
 
 ```mysql
 # 字符串以xxx开头
 [...] where str like 'xxx%';
+# 字符串xxx?
+[...] where str like 'xxx_';
 
 # 得到date格式数据的年月日
 year(some_date); # month day hour minute second
@@ -21,9 +21,9 @@ create database if not exists test;
 drop database if exists test;
 
 # 其他的关键字
-'''
-unique ~ 
-'''
+
+# unique ~ 
+
 
 create table Project
 (
@@ -93,7 +93,8 @@ having count(PID) > 1;
 
 ```mysql
 # 如果直接在Update XXX时，内部的变量直接用，不用from，用from就会报错；
-update Loan set money1 = (select avg(money1)) where money1 = 0;
+set @tmp = (select avg(money1) from Loan);
+update Loan set money1 = @tmp where money1 = 0;
 ```
 
 ## JOIN
@@ -152,7 +153,6 @@ select * from Project natural join Bank;
 
 - 记得begin-end；
 - `end if`后记得结束符；
-- 
 
 ```mysql
 delimiter $$
@@ -166,6 +166,24 @@ create trigger trig before update on Loan
 		end if;# END IF后有分号
 	end$$
 delimiter ;
+
+delimiter $$
+create trigger exp 
+before delete on Loan
+for each row
+	begin
+		if weekday(now()) != 0 then
+			signal sqlstate '66666' set message_text = 'U can only operate on Monday!';
+		end if;
+	end$$
+delimiter ;
+```
+
+## Case When
+
+```mysql
+# 无法distinct
+select sum(case when bid != 1 then 1 else 0 end) from book;
 ```
 
 ## Normal Func
