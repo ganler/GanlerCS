@@ -28,9 +28,15 @@ Every task has its own parameters. But parameters at the same layer have constra
 
 For K tasks and D-dim parameters, we have $A(D\times K)$.
 
-To make `lock-Sparse`, we need let some rows of A to be 0(Or simply use L1 regularization);
+To make `Block-Sparse`, we need let some rows of A to be 0(Or simply use L1 regularization);
 
-- **Group Lasso**: L1/L2 Norm. Divide parameters into groups. MSE + Group-L1.
+- **Group Lasso**: L1 / L2 Norm. Divide parameters into groups. MSE + Group-L1.
+
+> Why block-sparse: Let each task consider a few features( from the feature vector) only.
+
+## Task Relationship
+
+Negative transfer: sharing information with an unrelated task might actually hurt performance.
 
 ## Regularization way for learning task relationship
 
