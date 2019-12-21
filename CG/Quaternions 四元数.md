@@ -136,6 +136,7 @@ glm::vec3 myRotationAxis( ??, ??, ??);
 glm::mat4 anim = glm::rotate(
   glm::mat4(1.0f), 
   glm::radians(angle),  // 角度转弧度
-  myRotationAxis);
+  myRotationAxis
+);
 ```
 
