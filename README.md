@@ -1,3 +1,3 @@
 # GanlerCS
 
-Selected computer science notes of Ganler.
+Selected computer science notes of Jiawei Liu.
