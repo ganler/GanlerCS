@@ -179,3 +179,54 @@ $$
 $$
 P(c|x)=\frac{P(c)P(x|c)}{P(x)}=\frac{P(c)}{P(x)}\prod_{i=1}^dP(x_i|c)
 $$
+
+## Linear Regression
+
+对于相互线性可分的c类，最多$\frac{c(c-1)}{2}$可分。
+
+### Generalized Linear Discriminant Functions 
+
+<img src="https://i.loli.net/2019/12/22/NqBQyc2fSH7d6Ra.png" style="zoom:50%;" />
+
+Not linearly seperable? Define a  new space:
+
+e.g. `[x1, x2] -> [x1, x2, x1x2]`
+
+### Fisher Linear DIscrimination
+
+- Minimize within-class scatter.
+- Maximize between-class scatter.
+
+$$
+w^*x+w_0=0\\
+w^*=S_w^{-1}(\mu_1-\mu_2)\\
+w_0=-w^{*\top}\frac{\sum_i^N \mu_i}{N}\\
+S_w=\sum S_i=\sum \left(\sum_{x\in K_i} (x-\mu_i)(x-\mu_i)^\top\right)
+$$
+
+$\mu_i$，对于第i类，x的均值。
+
+#### 例子
+
+<img src="https://i.loli.net/2019/12/22/Lb4BTQOalEieHYf.png" style="zoom:50%;" />
+$$
+S_w={\rm diag(2,2)}\\
+w^*={\rm diag(1/2,1/2)}[0,-2]^\top=[0,-1]^\top\\
+w_0=-w^{*\top}\frac{m_1+m_2}{2}=1
+$$
+(w0是一个标量)
+
+### Perceptron & example
+
+$$
+x_1,x_2\to c_1\\
+x_3,x_4\to c_2
+$$
+
+针对于增广（负样本还得反向一下）后的形式；
+
+<img src="https://i.loli.net/2019/12/22/L28dD3RmJHiCbMu.png" style="zoom:40%;" />
+
+这里就是对了不管，错了就w += cx（因为wx+b对w求导就是x）
+
+（等于0一样要更新，人脑训练，没办法这就是你同济的要求 orz）

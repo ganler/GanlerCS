@@ -212,7 +212,7 @@ $$
 
 ### 💖 Z-Buffer
 
-简单来说就是在viewport上的每个像素：
+简单来说就是在viewport上的每个像素： => Draw if closer.
 
 - 记录当前「最近深度」；
 - 以后的像素，如果远于最近深度，就不画；
@@ -231,3 +231,148 @@ $$
   - Waste time drawing hidden objects
   - Z-precision errors
   - May have to use point sampling 
+
+## **Rasterization**
+
+### 💖 Line Ras
+
+#### DDA
+
+Select pixel vertically closest to line segment.
+
+```c++
+dx = x2 - x1, dy = y2 - y1;
+step = min(abs(dx), abs(dy)); // 走小的
+for(int i=0; i<step; ++i)
+{
+  	x += dx / (step);
+  	y += dy / (step);
+  	setp(round(x), round(y));
+}
+```
+
+#### Bresenham
+
+转整数运算；
+
+```c++
+void bresenham(int x0, int y0, int x1, int y1) 
+{
+    int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int err = (dx > dy ? dx : -dy) / 2;
+
+    while (setpixel(x0, y0), x0 != x1 || y0 != y1) 
+    {
+        int e2 = err;
+        if (e2 > -dx) { err -= dy; x0 += sx; }
+        if (e2 <  dy) { err += dx; y0 += sy; }
+    }
+}
+```
+
+### 💖 Scan Conversion = Fill Polygons 
+
+- Split triagnles
+- Fill the spans 
+
+### 💖 Inside test
+
+Odd-Even rule.
+
+<img src="https://i.loli.net/2019/12/22/Na5HROkSiWf7DJK.png" style="zoom:35%;" />
+
+### 💖 Flood Fill
+
+```c++
+flood_fill(int x, int y) 
+{
+    if(read_pixel(x,y)= = WHITE) 
+    {
+				write_pixel(x,y,BLACK); 
+      	flood_fill(x-1, y); 
+      	flood_fill(x+1, y); 
+      	flood_fill(x, y+1); 
+      	flood_fill(x, y-1);
+		}
+}
+```
+
+### 💖 Triangulation -> Ear-clipping
+
+选一个点v，和他邻居组成三角形然后如果这个三角形是inside，那么把这个三角形记录，然后删去v，往复循环。
+
+## **Illumination**
+
+### 💖 Shading
+
+- Variation in observed color across an obj.
+- Cause by how a material reflects light.
+  - geometry
+  - lighting
+  - material
+
+### 💖 Color models
+
+- RGB
+- CMY(Cyan, Magenta, Yellow)
+- HSV(Hue, Saturation, value)
+
+### 💖 Phong Reflection Model
+
+<img src="https://i.loli.net/2019/12/22/mIj6AsgrYuE2iKJ.png" style="zoom:50%;" />
+
+
+
+#### Ambient Reflection
+
+$$
+I_a = k_a*L_a
+$$
+
+环境颜色 * 强度系数；
+
+#### Diffuse
+
+$$
+I_d=k_d*(\cos<l, n>)*L_d
+$$
+
+#### Specular
+
+$$
+I_s=\max (k_s L_s \cos <v, r>, 0)
+$$
+
+Then add them all.
+
+### 💖 Blinn-Phong reflection model
+
+Replace **cos<v,r>** using **cos<h, l>**, where **h = (v+l)/2**
+
+<img src="https://i.loli.net/2019/11/19/MYSZIlNsLr98qwJ.png" style="zoom:50%;" />
+
+Before any computation, we know $v, n, l$. Computation of $h$ is easy: $h = \frac{l+v}{||l+v||}$ and computation of $r$ is a little bit complex: $r=2*n*(l*n)-l$ .
+
+- The purpose of the modification is to speed up the computation.
+- Blinn-Phong reflection model only modified the **specular reflection** stage $\to L_sK_s\max(\frac{l+v}{||l+v||}*n, 0)$
+
+### 💖 Flat shading
+
+Assign all pixels inside each polygon the same color, therefore reveal polygons and fast.
+
+### 💖 Gourand shading
+
+Gourand Shading uses **vertex shader** and **interpolation methods** on fragment color. <u>The color of vertexes are given and the color of fragments are computed by interpolation.</u>
+
+There're mainly 3 steps:
+
+1. Normal averaging;（对于每个vertex的法向量用周围边的平均值来估计）
+2. Vertex lighting;（compute the color for each vertex based on a shading model）
+3. Interpolation;（既然算出了点的颜色，那么图元内部像素就通过双线性插值来算）
+
+### 💖 Phong Shading
+
+- Normal interpolation
+- Fragment lighting
+
