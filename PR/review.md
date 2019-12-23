@@ -6,7 +6,7 @@
 - Feature Extraction
 - Classification
 
-## Bayesian
+## 💖 Bayesian
 
 ### Theory
 
@@ -89,7 +89,7 @@ $$
 - MLE -> 求参数值
 - Baysian -> 求参数分布
 
-### MLE 参数估计
+### 💖 MLE 参数估计
 
 > 特点：
 >
@@ -192,10 +192,10 @@ Not linearly seperable? Define a  new space:
 
 e.g. `[x1, x2] -> [x1, x2, x1x2]`
 
-### Fisher Linear DIscrimination
+### 💖 Fisher Linear Discrimination
 
-- Minimize within-class scatter.
-- Maximize between-class scatter.
+- Minimize within-class scatter Sw.
+- Maximize between-class scatter Sb.
 
 $$
 w^*x+w_0=0\\
@@ -216,7 +216,7 @@ w_0=-w^{*\top}\frac{m_1+m_2}{2}=1
 $$
 (w0是一个标量)
 
-### Perceptron & example
+### 💖 Perceptron & example
 
 $$
 x_1,x_2\to c_1\\
@@ -230,4 +230,100 @@ $$
 这里就是对了不管，错了就w += cx（因为wx+b对w求导就是x）
 
 （等于0一样要更新，人脑训练，没办法这就是你同济的要求 orz）
+
+## 💖 Clustering
+
+### Kmeans
+
+#### Steps
+
+1. Data & K
+2. Select K centroids randomly
+3. For each non-centroids, find the closest centroid, and join its cluster.
+4. Refresh the centroids: $c_{i}'={\rm avg}(x),x\in C_i$. 
+5. If new centroids are different to the older ones, goto step 3.
+
+#### How to choose a good k
+
+Global variance:
+$$
+J(D)=\sum_i \sum_j||x_j-\mu_i||^2
+$$
+把各个cluster的方差算出来，求和。
+
+这时候k是变量，多算几个k。
+
+一般来说，随着k增大，J(D)会下降；我们就选随着k增大时，J(D)减少最猛一步时对应的k。
+
+### Hierarchical Clustering
+
+#### Hierarchical Clustering 1
+
+##### Distance: Single Link
+
+Smallest distance between all possible cross-cluster point pairs in 2 clusters.
+
+
+$$
+d(C_i, C_j)=\min (d(x_i,x_j)),x_i\in C_i, x_j\in C_j
+$$
+
+##### Distance: Complete Link
+
+Largest distance ...
+
+##### Distance: Avg
+
+Average distance among all possible cross-cluster point pairs in 2 clusters.
+
+> 计算距离的时候的一般步骤（老师要求的步骤）：
+>
+> ![](https://i.loli.net/2019/12/23/Xm9AfG2WoNvuEDL.png)
+
+
+
+##### Agglomerative: Bottom-up
+
+> Just like a huffman tree.
+
+Link the closest clusters.
+
+> 一般选用欧式距离：
+>
+> 每次选最近的，然后merge。
+>
+> 如果merge后的连接是single link，那么merge(A, B)后的距离为：
+> $$
+> d_{(A,B)\to C}=\min(d_{A\to C}, d_{B\to C})
+> $$
+
+
+
+##### Divisive: Top-down
+
+- Initially all objs are in one big cluster.
+- Subdivide the cluster into small clusters.
+
+## 💖 PCA
+
+- 中心化，所有数据减去平均值：$Y=X-\bar X$ (m,n)
+- 协方差矩阵：$\Sigma = \frac{YY^T}{n}$ (m, m)；
+- $\Sigma v = \lambda v$
+- 将特征值从小到大排序
+- 取最大的k个特征值对应的特征向量，拼成$P$(k×m)
+- $Z_{(k\times n)}= PY$
+
+#### 😲 求逆矩阵
+
+#### 😲 算特征向量
+
+![](https://i.loli.net/2019/12/24/a2skQfmrKYWqDoh.png)
+
+### Class Separability Criterion
+
+![](https://i.loli.net/2019/12/24/YfVkQtWK4OJGs6I.png)
+
+![](https://i.loli.net/2019/12/24/pDM91Q2B5auvHhA.png)
+
+### 😲 Parzen Window
 
