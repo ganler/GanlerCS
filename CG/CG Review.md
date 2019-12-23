@@ -46,7 +46,7 @@ A **framebuffer** is a portion of RAM containing a bitmap that drives a video di
 
 A **vertex** is a point/node in the space, represented by its <u>coordinate</u> and <u>properties</u>, e.g. color, normal, texture coordinate etc. 
 
-A **primitive** is the basic element of geometric shapes and rendering, it is composed of vertices. It can be points, lines, polygons or polyhedrons. 
+A **primitive** is the basic element of **geometric shapes** and rendering, it is composed of vertices. It can be points, lines, polygons or polyhedrons. 
 
 A **fragment** is the output data of the geometry shader in <u>rasterization stage</u>. The fragment contains the data necessary to generate <u>a single pixel in the frame buffer</u>, e.g. color, depth, normal, texture coordinate etc.
 
@@ -195,7 +195,7 @@ $$
 ### Why does clip performed in the clip space? 
 
 - **Efficiency**;
-- **Correctness**: The orginal depth info in kept in clip space, not is normalized in NDC;
+- **Correctness**: The orginal depth info in kept in clip space, but is normalized in NDC;
 
 ### Line clipping: Cohen-Sutherland Algorithm 
 
@@ -287,7 +287,7 @@ Odd-Even rule.
 ```c++
 flood_fill(int x, int y) 
 {
-    if(read_pixel(x,y)= = WHITE) 
+    if(read_pixel(x,y) == WHITE) 
     {
 				write_pixel(x,y,BLACK); 
       	flood_fill(x-1, y); 
@@ -348,7 +348,7 @@ Then add them all.
 
 ### 💖 Blinn-Phong reflection model
 
-Replace **cos<v,r>** using **cos<h, l>**, where **h = (v+l)/2**
+Replace **cos<v,r>** using **cos<h, n>**, where **h = (v+l)/2**
 
 <img src="https://i.loli.net/2019/11/19/MYSZIlNsLr98qwJ.png" style="zoom:50%;" />
 
@@ -375,4 +375,32 @@ There're mainly 3 steps:
 
 - Normal interpolation
 - Fragment lighting
+
+---
+
+
+
+### 💖 Edge Collapse 
+
+### 💖 Vertex removal 
+
+贝塞尔插值就2个射线，Hermit插值poly插值；
+
+<img src="https://i.loli.net/2019/12/23/LNmyKJw8eAnFtxM.png" style="zoom:33%;" />
+
+就一组合公式；
+
+## OpenGL vs RT
+
+OpenGL is based on a pipeline model in which primitives are rendered one at time 
+
+- No shadows (shadow maps etc.)
+- No multiple reflections (environment maps etc.) 
+
+Global approaches 
+
+- Rendering equation 
+- Ray tracing 
+- Radiosity 
+- Easily making effects: shadows, reflections, transparency 
 
