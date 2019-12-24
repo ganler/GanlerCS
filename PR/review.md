@@ -194,8 +194,8 @@ e.g. `[x1, x2] -> [x1, x2, x1x2]`
 
 ### 💖 Fisher Linear Discrimination
 
-- Minimize within-class scatter Sw.
-- Maximize between-class scatter Sb.
+- Minimize within-class scatter Sw. 各类协方差矩阵和
+- Maximize between-class scatter Sb. 各类均值的协方差
 
 $$
 w^*x+w_0=0\\
@@ -290,7 +290,7 @@ Link the closest clusters.
 
 > 一般选用欧式距离：
 >
-> 每次选最近的，然后merge。
+> 每次选最近的点对(A, B)，然后merge 类A和类B。
 >
 > 如果merge后的连接是single link，那么merge(A, B)后的距离为：
 > $$
@@ -313,7 +313,25 @@ Link the closest clusters.
 - 取最大的k个特征值对应的特征向量，拼成$P$(k×m)
 - $Z_{(k\times n)}= PY$
 
-#### 😲 求逆矩阵
+#### How To Choose K
+
+$$
+{\rm PoV}=\frac{\sum_j^k \lambda_j}{\sum_i^d \lambda_i}
+$$
+
+Typically, stop at PoV > 0.9.
+
+#### 三阶行列式
+
+![](https://i.loli.net/2019/12/24/uX2z4mjE9NVwR5L.png)
+
+#### 求逆矩阵
+
+高斯消元法
+$$
+[A|I]\to [I|A^{-1}]
+$$
+
 
 #### 😲 算特征向量
 
@@ -324,6 +342,4 @@ Link the closest clusters.
 ![](https://i.loli.net/2019/12/24/YfVkQtWK4OJGs6I.png)
 
 ![](https://i.loli.net/2019/12/24/pDM91Q2B5auvHhA.png)
-
-### 😲 Parzen Window
 
