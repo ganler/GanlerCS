@@ -118,6 +118,43 @@ e.g. `Alice.txt` starts at 3 and ends at 3.
   - [14 =>  **x2 indirect**] ... table of table
   - [15 =>  **x3 indirect**] ... table of table of table
 
+> For UNIX v6, we have 10 block index in each inode.
+>
+> - Direct -> 6
+> - Indirect -> 2
+> - X2 Indirect -> 2
+>
+> For each block, the size is 512 bytes.
+
+#### SuperBlock
+
+> In exFAT, we have
+>
+> - SuperBlock(Metadata for the whole filesystem)
+> - Inode block
+> - Data block
+
+Use UNIX v6 for instance:
+
+##### For Inodes
+
+- `s_isize`: The number of blocks occupied in the inode space.
+- `s_ninode`: The number of inodes that the super block manages directly.
+- `s_inode[100]`: Index of directly managed inodes.
+- `s_ilock`: Just a lock for metadata.
+
+##### For free blocks
+
+- `s_fsize`: The # of free blocks.
+- `s_nfree`: The # of free blocks directly managed by super block.
+- `s_free[100]`: Index table.
+
+> For efficiency, this works like a `std::deque`.
+>
+> Each `s_free[100]` is a big chunk of indexes for blocks. And `s_free[0]` points to next chunk of indexes.(if `s_free[0] == 0`, then it's over.)
+
+> Once current block(controlled directly by superblock) is full. We get a new block, and copy contents of current block to it. And we change the `s_free[0]` of current block to the index of the new block.
+
 ### For exFAT...
 
 - **File creation**
