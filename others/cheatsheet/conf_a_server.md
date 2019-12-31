@@ -14,4 +14,3 @@ export PATH=$HOME/anaconda3/bin/:$PATH
 ```shell
 cat /usr/local/cuda/version.txt
 ```
-
