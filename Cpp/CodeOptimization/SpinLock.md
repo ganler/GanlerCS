@@ -21,12 +21,13 @@ public:
     naive_spinlock():m_af(ATOMIC_FLAG_INIT){}
     void lock() noexcept
     {
-        while (m_af.test_and_set(std::memory_order_acquire)); // 之后的不能到之前
+        while (m_af.test_and_set(std::memory_order_acquire)); // 之后的不能到之前（后面的东西都可见）
     }
     void unlock() noexcept
     {
-        m_af.clear(std::memory_order_release); // 之前的不能到之后
+        m_af.clear(std::memory_order_release); // 之前的不能到之后(前面的东西都可见)
     }
+  	// 可见性：a后r前
 };
 
 int x;
