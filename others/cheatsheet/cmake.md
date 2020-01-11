@@ -53,3 +53,21 @@ message(STATUS "Final compile options: ${CMAKE_CXX_FLAGS}")
 include_directories(taskflow)
 ```
 
+## Subdir for tests
+
+```cmake
+set(Boost_USE_STATIC_LIBS OFF) # Enable dynamic linking
+
+# see https://cmake.org/cmake/help/latest/module/FindBoost.html
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+
+include_directories(${Boost_INCLUDE_DIR})
+
+add_executable(cmake_test test.cpp)
+
+find_library(BAR bar lib)
+
+target_link_libraries(cmake_test ${Boost_LIBRARIES})
+target_link_libraries(cmake_test ${BAR})
+```
+
