@@ -1,6 +1,6 @@
 [TOC]
 
-## onda & Python
+## conda & Python
 
 ```shell
 # LINUX without ROOT
