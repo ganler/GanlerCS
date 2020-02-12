@@ -12,5 +12,18 @@ export PATH=$HOME/anaconda3/bin/:$PATH
 ## Config CUDA version
 
 ```shell
+nvcc --version
+# or
 cat /usr/local/cuda/version.txt
 ```
+
+## Choose a cuda dev
+
+```shell
+CUDA_VISIBLE_DEVICES=N COMMAND
+```
+
+## Auto SSH Connection
+
+[stackoverflow](https://serverfault.com/questions/241588/how-to-automate-ssh-login-with-password)
+

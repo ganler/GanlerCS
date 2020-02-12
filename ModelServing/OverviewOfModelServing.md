@@ -6,7 +6,7 @@ https://medium.com/@vikati/the-rise-of-the-model-servers-9395522b6c58
 
 ### Significance
 
-- Simplify model deployment at scale.(consistent API)
+- Simplify model deployment at scale.(consistent API, model versioning).
 - Accelerate the deeplearning application(better scheduling methods like accumulating bigger batch).
 
 ### What people used to do
