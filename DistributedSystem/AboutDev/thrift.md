@@ -4,8 +4,10 @@
 
 ## Overview
 
-- RPC框架
-- 多语言代码生成器
+- 「核心功能」
+  - **RPC框架**
+  - **多语言代码生成器**
+  - **序列化框架**
 - 跨语言
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Apache_Thrift_architecture.png/400px-Apache_Thrift_architecture.png" style="zoom:50%;" />
@@ -27,3 +29,24 @@
   - **TNonblockingServer** – 一个**多线程服务器**，它使用**非阻塞**I/O（Java的实现使用了[NIO](https://zh.wikipedia.org/wiki/Java_NIO)通道）。TFramedTransport必须跟这个服务器配套使用。
   - **TSimpleServer** – 一个**单线程服务器**，它使用标准的阻塞I/O。测试时很有用。
   - **TThreadPoolServer** – 一个**多线程服务器**，它使用标准的**阻塞**I/O。
+
+## Key Notes
+
+- String -> UTF8
+- Binary Type ->`Array<byte>` (0.10.0被干掉了，type变成了string，val变成[]byte)
+- 序列化协议主要是Binary/Compact/JSON
+  - 数据类型：
+    - 简单数据类型`bool | byte | i8 | i16 | i32 | i64 | double`
+    - 复合数据类型`string | binary | map | set | list | struct`
+    - 特殊数据类型`void | stop`
+  - 二进制编码（Binary/Compact的实现，不同主要在于对于整数的处理）常用TLV编码，基本概念是`[Tag(1 byte) | 编号(2byte) | Length | Value]`（grpc直接把类型和编号合并了），可嵌套。
+    - 详情看[这里](https://erikvanoosten.github.io/thrift-missing-specification/)。
+  - Compat序列化的不同主要在于**整数类型**采用`zigzag` 和 `varint`压缩编码实现，细节略，说说好处：
+    - `varint`: 小数字的字节数少；varint解决了无符号编码的问题，但有符号数的效果不好，所以`zigzag`先把有符号数映射到无符号数上；
+
+## Quick Example
+
+- 写IDL
+- 生成rpc代码
+- server端实现response
+- client实现request
