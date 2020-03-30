@@ -2,6 +2,8 @@
 
 [Wiki](https://zh.wikipedia.org/wiki/Thrift)
 
+[强烈推荐](https://diwakergupta.github.io/thrift-missing-guide/#_generated_code)
+
 ## Overview
 
 - 「核心功能」
@@ -32,6 +34,8 @@
 
 ## Key Notes
 
+### Theory
+
 - String -> UTF8
 - Binary Type ->`Array<byte>` (0.10.0被干掉了，type变成了string，val变成[]byte)
 - 序列化协议主要是Binary/Compact/JSON
@@ -43,6 +47,14 @@
     - 详情看[这里](https://erikvanoosten.github.io/thrift-missing-specification/)。
   - Compat序列化的不同主要在于**整数类型**采用`zigzag` 和 `varint`压缩编码实现，细节略，说说好处：
     - `varint`: 小数字的字节数少；varint解决了无符号编码的问题，但有符号数的效果不好，所以`zigzag`先把有符号数映射到无符号数上；
+
+### Usage
+
+- `namespace cpp a.b.c`就是把这些代码搞成`a::b::c`这个空间去；
+- 引号include
+- 每个field必须有个唯一的整数标志位；
+- Service：
+  - `oneway`：client只打request不需要response，也不用等待；
 
 ## Quick Example
 

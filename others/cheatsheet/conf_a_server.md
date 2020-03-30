@@ -5,8 +5,8 @@
 ```shell
 # LINUX without ROOT
 wget https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh
-bash ./Anaconda-latest-Linux-x86_64.sh
-export PATH=$HOME/anaconda3/bin/:$PATH
+bash ./Anaconda3-2019.10-Linux-x86_64.sh
+echo 'export PATH=$HOME/anaconda3/bin/:$PATH'>>~/.zshrc
 
 # Create env
 conda create -n NAME python=3.7 anaconda 
