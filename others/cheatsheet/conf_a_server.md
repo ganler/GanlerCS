@@ -30,3 +30,7 @@ CUDA_VISIBLE_DEVICES=N COMMAND
 
 [stackoverflow](https://serverfault.com/questions/241588/how-to-automate-ssh-login-with-password)
 
+```shell
+ssh-copy-id id@server
+```
+

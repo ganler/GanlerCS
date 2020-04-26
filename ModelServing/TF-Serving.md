@@ -1,5 +1,11 @@
 # TF-Serving
 
+## Research Features
+
+### Batching
+
+- 有个最大等待时间t，每个slot等t，等到就做batching。
+
 ## Features
 
 - Workes well for large models up to 2GB. Because the protobuf file format has 32 bit limit.
