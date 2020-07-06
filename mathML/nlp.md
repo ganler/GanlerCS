@@ -27,31 +27,28 @@ Cosine Similarity is a **scalar**.
 ## NLP@Word2Vec
 
 > https://easyai.tech/ai-definition/word2vec/
+>
+> https://towardsdatascience.com/word-embedding-with-word2vec-and-fasttext-a209c1d3e12c
 
-- NLP: $f(x)\to y$ where x is a word, and y is the context.
-  - I love you:
-    - x: love, then y: I, you.
-    - x: I, then y: love you.
-  - Check similarity:
-    - if f('I') = f('Jiawei') = ['love', 'you'], then 'I' and 'Jiawei' are highly related.
-  - How to represent x: One-Hot Vector. {Size N}
-  - How to represent y: [conf_for_word1, ..., conf_for_wordN] * K
-    - For each $y_i$, $\arg \max(y_i)$ stands for the outpur word in Skip-Gram.
-- Unstructured Data => Structured Data
-- Words => Word Embedding
-- Proposed by Mikolov
+- word2vec: word2embedding.
+  - Just map the word to a n-dimension embedding vector.
 
 ![word2vec在nlp中的位置](https://easy-ai.oss-cn-shanghai.aliyuncs.com/2020-02-17-w2v-guanxi.png)
 
-- 2 training approaches:
+- Skip-gram
+  - Input: one-hot word. **dim-v**
+  - Outputs: one-hot words. **dim-v**
+  - Result vector: Hidden layer embedding vector. **dim-n**
 
-  - CBOW(Continuous Bags-of-Words Model)
+![2019-09-26-Skip-gram](https://easy-ai.oss-cn-shanghai.aliyuncs.com/2019-09-26-Skip-gram.png)
 
-  ![2019-09-26-cbow](https://easy-ai.oss-cn-shanghai.aliyuncs.com/2019-09-26-cbow.png)
+![img](https://miro.medium.com/max/552/1*TbjQNQLuyEW-cgsofyDioQ.png)
 
-  - Skip-Gram
+- CBOW
 
-  ![2019-09-26-Skip-gram](https://easy-ai.oss-cn-shanghai.aliyuncs.com/2019-09-26-Skip-gram.png)
+![img](https://miro.medium.com/max/660/1*UdLFo8hgsX0a1NKKuf_n9Q.png)
+
+![2019-09-26-cbow](https://easy-ai.oss-cn-shanghai.aliyuncs.com/2019-09-26-cbow.png)
 
 - Accelerate: 
 
