@@ -127,3 +127,7 @@ The encoders have independent parameters(they do not share the same parameters).
 
 - For each token: a one-hot vector of size N. (N = the number of word classes)
 - Where: The bottom-most encoder.
+
+## EOS: end of seq.
+
+To enhance the classification result.
