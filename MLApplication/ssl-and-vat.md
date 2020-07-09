@@ -35,11 +35,10 @@
     $$
     perturbation_{best} = \arg \max_{perturbation}\left(\mathbb D[P(label|feature), P(label|feature+perturbation)]\right)
     $$
-
-    $$
+$$
     L=L_{original}+L_{VAT}\\
     L_{VAT}=\mathbb D [P(label|feature+perturbation_{best}), P(label|feature)]
     $$
-
-    - For unlabeled images, we let our model to predict the labels.
+    
+- For unlabeled images, we let our model to predict the labels.
 
