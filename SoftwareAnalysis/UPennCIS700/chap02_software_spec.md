@@ -44,5 +44,51 @@ Example:
 
 ![image-20210109020333248](image-20210109020333248.png)
 
-### Class invariants
+### Class Invariant
 
+all [**public**] method must preserve some *statements*; like `self.num != 0`;
+
+Here, pre-conditions are about arguments; and post-conditions are about return values;
+
+### Houdini Algorithms: An algorithm to find out invariants;
+
+> Programmers are reluctant to write and maintain specifications; So can we automatically find out some kind of approaches to generate class invariants, where they must be **sound** (will not take right conditions as bugs);
+
+An annotation assistant for the static modular verifier ESC/Java; 
+
+* Idea: Generate many (as many as possible) **candidate invariants** and employ ESC/Java to verify or refute each;
+
+Some examples of candidate invariants (looks like *assertion*):
+
+```java
+// @ invariant i cmp j; cmp \in {<, <=, ==, =>, >}
+// @ invariant ptr != null;
+// @ invariant (forall int k; 0 <= k && k < a.length ==> a[k] != null)
+```
+
+![image-20210204173846209](image-20210204173846209.png)
+
+Pros:
+
+* loop invariants & method contracts;
+* infer the strongest invariant in the candidate set;
+* easy;
+
+Cons:
+
+* only infer **conjunctive invariants**: `a && b && c`...
+* More candidates : more expensive; less candidates : worse annotations;
+
+## Code coverage
+
+That is: do we have all **possibilities** in the **function/decision/statement/condition**  space well tested?
+
+[Wiki](https://zh.wikipedia.org/zh-cn/%E4%BB%A3%E7%A2%BC%E8%A6%86%E8%93%8B%E7%8E%87)
+
+## Mutation Analysis
+
+test variations of the program;
+
+change some parts of the expression;
+
+* If the test suite is good, we should report failed test cases in the mutants;
