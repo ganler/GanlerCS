@@ -14,6 +14,10 @@ Given a property $\phi$, where we believe this is a "good property"; A good prog
 
 A **sound** *Program Analysis* should accept some (not all) of the "good programs", while a **complete** one must accept them all. Also, a sound analysis should not accept any "bad" program while a complete one may;
 
+In other words, a **sound** analysis' error report will be the super set of $\phi$ (report all possible $\phi$ related bugs!)
+
+a **complete** analysis' error report will be the sub set of $\phi$ (may miss some errors, but the reports are definitely correct).
+
 ![image-20210109002553470](image-20210109002553470.png)
 
 ## Evaluation
